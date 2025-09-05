@@ -195,46 +195,56 @@ function Overlay({ children, onClose }:{ children: React.ReactNode, onClose?:()=
   );
 }
 
-function Menu({ difficulty, setDifficulty, onStart, onLoad }:{ difficulty:"easy"|"normal"|"hard", setDifficulty:(v:any)=>void, onStart:()=>void, onLoad:()=>void }) {
+function Menu(
+  { difficulty, setDifficulty, onStart, onLoad }:
+  { difficulty: "easy" | "normal" | "hard", setDifficulty: (v:any)=>void, onStart: ()=>void, onLoad: ()=>void }
+){
   return (
     <div className="pointer-events-auto relative z-20 w-full max-w-[1100px] grid md:grid-cols-2 gap-6">
       <div className="bg-slate-800/60 rounded-2xl p-6 shadow-xl">
         <h2 className="text-xl font-bold mb-2">Nuevo Juego</h2>
         <p className="text-sm opacity-80 mb-4">Mapa procedural, enemigos con IA, JEFE, tienda y sonidos.</p>
+
         <div className="flex items-center gap-2 mb-4">
           <label className="text-sm opacity-90">Dificultad:</label>
-          <select value={difficulty} onChange={(e)=>setDifficulty(e.target.value)} className="pointer-events-auto bg-slate-700 rounded-xl px-3 py-2">
+          <select
+            value={difficulty}
+            onChange={(e)=>setDifficulty(e.target.value as any)}
+            className="pointer-events-auto bg-slate-700 rounded-xl px-3 py-2"
+          >
             <option value="easy">Fácil</option>
             <option value="normal">Normal</option>
             <option value="hard">Difícil</option>
           </select>
         </div>
-    <div className="flex gap-2">
-  <button
-    onClick={() => {
-      // Desbloquear AudioContext antes de iniciar
-      try {
-        const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-        const ctx = new AC();
-        if (ctx.state !== "running") ctx.resume();
-      } catch {}
-      onStart(); // inicia el juego
-    }}
-    className="pointer-events-auto px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600"
-  >
-    Comenzar
-  </button>
 
-  <button
-    onClick={onLoad}
-    className="pointer-events-auto px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600"
-  >
-    Cargar
-  </button>
-</div>
+        <div className="flex gap-2">
+          <button
+            onClick={()=>{
+              // Desbloquear AudioContext
+              try {
+                const AC: any = (window as any).AudioContext || (window as any).webkitAudioContext;
+                const ctx = new AC();
+                if (ctx.state !== "running") ctx.resume();
+              } catch {}
+              onStart();
+            }}
+            className="pointer-events-auto px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600"
+          >
+            Comenzar
+          </button>
+
+          <button
+            onClick={onLoad}
+            className="pointer-events-auto px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600"
+          >
+            Cargar
+          </button>
+        </div>
+      </div>
 
       <div className="bg-slate-800/60 rounded-2xl p-6 shadow-xl">
-        <h2 className="text-xl font-bold mb-3">Controles</h2>
+        <h2 className="text-xl font-bold mb-2">Controles</h2>
         <ul className="text-sm space-y-1 opacity-90">
           <li>WASD: moverte • Clic: disparar</li>
           <li>Espacio: dash • E: interactuar (portal/tienda)</li>
@@ -246,6 +256,7 @@ function Menu({ difficulty, setDifficulty, onStart, onLoad }:{ difficulty:"easy"
     </div>
   );
 }
+
 
 function TopHud({ g, onSave, onPause }:{ g: Game, onSave:()=>void, onPause:()=>void }){
   const hearts = Math.ceil(g.player.maxHp / 20);
