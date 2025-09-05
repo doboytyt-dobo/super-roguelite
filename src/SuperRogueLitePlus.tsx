@@ -1,6 +1,10 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-
+// --- fix SFX global ---
+declare global { interface Window { sfx?: boolean } }
+if (typeof window !== "undefined" && window.sfx === undefined) {
+  window.sfx = true; // SFX encendido por defecto
+}
 // SUPER ROGUELITE PLUS (with Boss, Shop, SFX)
 
 export default function SuperRogueLitePlus() {
