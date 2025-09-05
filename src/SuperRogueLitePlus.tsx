@@ -365,89 +365,136 @@ function nextFloor(g:any){
   const shopRoom = g.rooms[Math.min(g.rooms.length-1, 1 + randInt(0, Math.max(0, g.rooms.length-2)))]; const shopPos=roomCenterPixel(shopRoom, tile); g.items.push({ x:shopPos.x+randInt(-20,20), y:shopPos.y+randInt(-20,20), type:"shop" });
   for (let i=1;i<Math.min(g.rooms.length, 6);i++){ const pos = roomCenterPixel(g.rooms[i], tile); spawnEnemy(g.enemies, pos.x, pos.y, g.meta); if (Math.random()<0.5) spawnItem(g.items, pos.x, pos.y); }
 }
-
 function updateGame(g:any, dt:number, ctx:CanvasRenderingContext2D){
-  const p=g.player; const kb=g.input.kb as Set<string>; const mouse=g.input.mouse as any;
+  const p=g.player; 
+  const kb=g.input.kb as Set<string>; 
+  const mouse=g.input.mouse as any;
 
-  let ax=0, ay=0; if (kb.has("w")) ay-=1; if (kb.has("s")) ay+=1; if (kb.has("a")) ax-=1; if (kb.has("d")) ax+=1; const len=Math.hypot(ax,ay)||1; const spd=p.speed*(p.dashTime>0?2.2:1.0); const vx=(ax/len)*spd*dt, vy=(ay/len)*spd*dt;
-  p.dashCd=Math.max(0, p.dashCd-dt); p.dashTime=Math.max(0, p.dashTime-dt); if (kb.has(" ") && p.dashCd<=0){ p.dashTime=0.18; p.dashCd=0.9; g.playSfx?.("dash"); }
+  let ax=0, ay=0; 
+  if (kb.has("w")) ay-=1; 
+  if (kb.has("s")) ay+=1; 
+  if (kb.has("a")) ax-=1; 
+  if (kb.has("d")) ax+=1; 
+
+  const len=Math.hypot(ax,ay)||1; 
+  const spd=p.speed*(p.dashTime>0?2.2:1.0); 
+  const vx=(ax/len)*spd*dt, vy=(ay/len)*spd*dt;
+
+  p.dashCd=Math.max(0, p.dashCd-dt); 
+  p.dashTime=Math.max(0, p.dashTime-dt); 
+  if (kb.has(" ") && p.dashCd<=0){ 
+    p.dashTime=0.18; 
+    p.dashCd=0.9; 
+    g.playSfx?.("dash"); 
+  }
+
   tryMove(g, p, vx, vy);
 
   if (mouse.down) shoot(g, p, mouse);
-  for (let i=g.bullets.length-1;i>=0;i--){ const b=g.bullets[i]; b.x+=b.vx*dt; b.y+=b.vy*dt; b.life-=dt; if (solidAt(g,b.x,b.y) || b.life<=0){ g.bullets.splice(i,1); continue; }
-    if (b.from==="player"){ for (let j=g.enemies.length-1;j>=0;j--){ const e=g.enemies[j]; if (dist(b.x,b.y,e.x,e.y) < (e.type==="boss"? e.r+6 : 14)){ e.hp -= b.damage; g.bullets.splice(i,1); if (e.hp<=0){
-            if (e.type==="boss"){ g.bossAlive=false; g.bossDefeated=true; g.playSfx?.("bossdown"); const pos={x:e.x,y:e.y}; g.items.push({ x:pos.x, y:pos.y, type:"portal" }); g.coins += 50; g.score += 500; }
-            g.enemies.splice(j,1); g.score += 20; g.coins += randInt(2,4); gainXp(g, 12); if (Math.random()<0.2) spawnItem(g.items, e.x, e.y); g.killsThisFloor = (g.killsThisFloor||0)+1;
+
+  for (let i=g.bullets.length-1;i>=0;i--){ 
+    const b=g.bullets[i]; 
+    b.x+=b.vx*dt; 
+    b.y+=b.vy*dt; 
+    b.life-=dt; 
+    if (solidAt(g,b.x,b.y) || b.life<=0){ 
+      g.bullets.splice(i,1); 
+      continue; 
+    }
+    if (b.from==="player"){ 
+      for (let j=g.enemies.length-1;j>=0;j--){ 
+        const e=g.enemies[j]; 
+        if (dist(b.x,b.y,e.x,e.y) < (e.type==="boss"? e.r+6 : 14)){ 
+          e.hp -= b.damage; 
+          g.bullets.splice(i,1); 
+          if (e.hp<=0){
+            if (e.type==="boss"){ 
+              g.bossAlive=false; 
+              g.bossDefeated=true; 
+              g.playSfx?.("bossdown"); 
+              const pos={x:e.x,y:e.y}; 
+              g.items.push({ x:pos.x, y:pos.y, type:"portal" }); 
+              g.coins += 50; 
+              g.score += 500; 
+            }
+            g.enemies.splice(j,1); 
+            g.score += 20; 
+            g.coins += randInt(2,4); 
+            gainXp(g, 12); 
+            if (Math.random()<0.2) spawnItem(g.items, e.x, e.y); 
+            g.killsThisFloor = (g.killsThisFloor||0)+1;
           }
-          break; }
+          break; 
+        }
       }
-    } else { if (dist(b.x,b.y,p.x,p.y) < 12){ p.hp -= b.damage; g.bullets.splice(i,1); g.playSfx?.("hurt"); if (p.hp<=0) gameOver(); } }
+    } else { 
+      if (dist(b.x,b.y,p.x,p.y) < 12){ 
+        p.hp -= b.damage; 
+        g.bullets.splice(i,1); 
+        g.playSfx?.("hurt"); 
+        if (p.hp<=0) gameOver(); 
+      } 
+    }
   }
 
-  for (const e of g.enemies){ const dx=p.x-e.x, dy=p.y-e.y; const d=Math.hypot(dx,dy)||1; if (e.type==="chaser"){ const s=60 + (g.meta.difficulty==="hard"?20:0); tryMove(g, e, (dx/d)*s*dt, (dy/d)*s*dt); if (d<16){ p.hp -= g.meta.enemyBaseDmg*dt; if (p.hp<=0) gameOver(); } }
-    else if (e.type==="shooter"){ e.cd-=dt; if (e.cd<=0 && d<320){ e.cd=1.2+Math.random()*0.6; const sp=180; const vx=(dx/d)*sp, vy=(dy/d)*sp; g.bullets.push({ x:e.x, y:e.y, vx, vy, life:2.5, from:"enemy", damage:g.meta.enemyBaseDmg*0.7 }); }
-      const s=40; tryMove(g, e, (dx/d)*s*dt*0.2, (dy/d)*s*dt*0.2); }
-    else if (e.type==="boss"){ e.cd -= dt;
-      if (e.cd<=0){ e.cd = 1.6; const shots = 10 + randInt(0,6); const speed = 140 + 20*randInt(0,2); for (let k=0;k<shots;k++){ const ang = (Math.PI*2*k)/shots + Math.random()*0.2; const vx=Math.cos(ang)*speed, vy=Math.sin(ang)*speed; g.bullets.push({ x:e.x, y:e.y, vx, vy, life:3.5, from:"enemy", damage:g.meta.enemyBaseDmg*1.2 }); } g.playSfx?.("bossfire"); }
-      const s = 50; tryMove(g, e, (dx/d)*s*dt*0.6, (dy/d)*s*dt*0.6); }
+  for (const e of g.enemies){ 
+    const dx=p.x-e.x, dy=p.y-e.y; 
+    const d=Math.hypot(dx,dy)||1; 
+    if (e.type==="chaser"){ 
+      const s=60 + (g.meta.difficulty==="hard"?20:0); 
+      tryMove(g, e, (dx/d)*s*dt, (dy/d)*s*dt); 
+      if (d<16){ 
+        p.hp -= g.meta.enemyBaseDmg*dt; 
+        if (p.hp<=0) gameOver(); 
+      } 
+    }
+    else if (e.type==="shooter"){ 
+      e.cd-=dt; 
+      if (e.cd<=0 && d<320){ 
+        e.cd=1.2+Math.random()*0.6; 
+        const sp=180; 
+        const vx=(dx/d)*sp, vy=(dy/d)*sp; 
+        g.bullets.push({ x:e.x, y:e.y, vx, vy, life:2.5, from:"enemy", damage:g.meta.enemyBaseDmg*0.7 }); 
+      }
+      const s=40; 
+      tryMove(g, e, (dx/d)*s*dt*0.2, (dy/d)*s*dt*0.2); 
+    }
+    else if (e.type==="boss"){ 
+      e.cd -= dt;
+      if (e.cd<=0){ 
+        e.cd = 1.6; 
+        const shots = 10 + randInt(0,6); 
+        const speed = 140 + 20*randInt(0,2); 
+        for (let k=0;k<shots;k++){ 
+          const ang = (Math.PI*2*k)/shots + Math.random()*0.2; 
+          const vx=Math.cos(ang)*speed, vy=Math.sin(ang)*speed; 
+          g.bullets.push({ x:e.x, y:e.y, vx, vy, life:3.5, from:"enemy", damage:g.meta.enemyBaseDmg*1.2 }); 
+        } 
+        g.playSfx?.("bossfire"); 
+      }
+      const s = 50; 
+      tryMove(g, e, (dx/d)*s*dt*0.6, (dy/d)*s*dt*0.6); 
+    }
   }
 
-  g.spawner.t += dt; const needBossAt = 20 + 5*(g.floor-1);
-  if (!g.bossAlive && !g.bossDefeated && (g.killsThisFloor||0) >= needBossAt){ spawnBoss(g); g.playSfx?.("boss"); }
-  if (!g.bossAlive && !g.bossDefeated && g.spawner.t >= g.meta.spawnEvery){ g.spawner.t=0; const far = g.rooms.filter((r:any)=> dist(p.x,p.y, r.cx	g.meta.tile, r.cy*g.meta.tile) > 200); const r = far.length? far[randInt(0,far.length-1)] : g.rooms[randInt(0,g.rooms.length-1)]; const pos = roomCenterPixel(r, g.meta.tile); spawnEnemy(g.enemies, pos.x+randInt(-30,30), pos.y+randInt(-30,30), g.meta); }
-}
+  g.spawner.t += dt; 
+  const needBossAt = 20 + 5*(g.floor-1);
 
-function gainXp(g:any, amount:number){ const p=g.player; p.xp+=amount; while(p.xp >= p.nextLevelXp){ p.xp -= p.nextLevelXp; p.level++; p.nextLevelXp=Math.floor(p.nextLevelXp*1.35); const r=Math.random(); if (r<0.34){ p.maxHp+=12; p.hp=p.maxHp; } else if (r<0.67){ p.dmg+=4; } else { p.speed+=10; } g.playSfx?.("level"); } }
+  if (!g.bossAlive && !g.bossDefeated && (g.killsThisFloor||0) >= needBossAt){ 
+    spawnBoss(g); 
+    g.playSfx?.("boss"); 
+  }
 
-function shoot(g:any, p:any, mouse:any){ p._cd = Math.max(0, (p._cd||0) - (1/60)); if (p._cd>0) return; p._cd = 0.12; const rect = g._rectCache || (g._rectCache = gRect(g)); const mx=(mouse.x/rect.w)*g.meta.width, my=(mouse.y/rect.h)*g.meta.height; const dx=mx-p.x, dy=my-p.y, d=Math.hypot(dx,dy)||1; const sp=340; const vx=(dx/d)*sp, vy=(dy/d)*sp; g.bullets.push({ x:p.x, y:p.y, vx, vy, life:1.3, from:"player", damage:p.dmg }); g.playSfx?.("shoot"); }
-
-function tryMove(g:any, ent:any, vx:number, vy:number){ const nx=ent.x+vx, ny=ent.y+vy; const r=ent.r||10; if (!solidAt(g, nx+r, ent.y) && !solidAt(g, nx-r, ent.y)) ent.x=nx; if (!solidAt(g, ent.x, ny+r) && !solidAt(g, ent.x, ny-r)) ent.y=ny; }
-function solidAt(g:any, x:number,y:number){ const i=Math.floor(y/g.meta.tile)*g.cols + Math.floor(x/g.meta.tile); if (i<0 || i>=g.tiles.length) return true; return g.tiles[i]===1; }
-function gRect(g:any){ const c=document.querySelector("canvas") as HTMLCanvasElement|null; const r=c?.getBoundingClientRect(); return { w:r?.width||g.meta.width, h:r?.height||g.meta.height }; }
-
-function gameOver(){ window.dispatchEvent(new Event("gameover")); }
-
-function renderGame(g:any, ctx:CanvasRenderingContext2D, dimmed=false){
-  const { meta, tiles, cols, rows } = g; ctx.fillStyle="#0b1020"; ctx.fillRect(0,0,meta.width, meta.height);
-  for (let y=0;y<rows;y++) for (let x=0;x<cols;x++){ const t=tiles[y*cols+x]; if (t===0){ ctx.fillStyle="#111b38"; ctx.fillRect(x*meta.tile, y*meta.tile, meta.tile, meta.tile); ctx.fillStyle="#0e1730"; ctx.fillRect(x*meta.tile+6, y*meta.tile+6, 3,3); } else { ctx.fillStyle="#0d142a"; ctx.fillRect(x*meta.tile, y*meta.tile, meta.tile, meta.tile); } }
-  for (const it of g.items){ ctx.save(); ctx.translate(it.x,it.y); if (it.type==="potion"){ ctx.fillStyle="#e25555"; drawDiamond(ctx,8); } if (it.type==="speed"){ ctx.fillStyle="#55e2a7"; drawDiamond(ctx,8); } if (it.type==="power"){ ctx.fillStyle="#e2d355"; drawDiamond(ctx,8); } if (it.type==="portal"){ ctx.strokeStyle="#7cc7ff"; ctx.lineWidth=3; ring(ctx, 14); } if (it.type==="shop"){ ctx.fillStyle="#9b8cff"; drawHex(ctx, 10); }
-    ctx.restore(); }
-  const p=g.player; ctx.save(); ctx.translate(p.x,p.y); ctx.fillStyle="#79a6ff"; circle(ctx,10); ctx.fillStyle="#b4c9ff"; circle(ctx,4); ctx.restore();
-  for (const e of g.enemies){ ctx.save(); ctx.translate(e.x,e.y); if (e.type==="chaser") ctx.fillStyle="#ff7a79"; else if (e.type==="shooter") ctx.fillStyle="#f2b97b"; else ctx.fillStyle="#ff51c4"; (e.type==="boss"? bigTriangle : triangle)(ctx, e.type==="boss"?18:12); ctx.restore(); }
-  for (const b of g.bullets){ ctx.save(); ctx.translate(b.x,b.y); ctx.fillStyle = b.from==="player"?"#a0ffae":"#ffd28a"; circle(ctx,3); ctx.restore(); }
-  drawMiniMap(g, ctx);
-  if (dimmed){ ctx.fillStyle="rgba(0,0,0,0.35)"; ctx.fillRect(0,0,meta.width, meta.height); }
-}
-
-function drawMiniMap(g:any, ctx:CanvasRenderingContext2D){ const { cols, rows, tiles, meta }=g; const scale=0.2; const mw=Math.floor(cols*scale); const mh=Math.floor(rows*scale); const x0=meta.width - mw*4 - 12; const y0=12; ctx.save(); ctx.translate(x0,y0); ctx.fillStyle="rgba(0,0,0,0.35)"; ctx.fillRect(0,0,mw*4,mh*4); for (let y=0;y<rows;y++) for (let x=0;x<cols;x++){ if (tiles[y*cols+x]===0){ ctx.fillStyle="#28406f"; ctx.fillRect(x*scale*4, y*scale*4, 3,3); } } ctx.fillStyle="#a7d0ff"; ctx.fillRect((g.player.x/g.meta.tile)*scale*4-1, (g.player.y/g.meta.tile)*scale*4-1, 3,3); ctx.restore(); }
-
-function circle(ctx:CanvasRenderingContext2D,r:number){ ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill(); }
-function triangle(ctx:CanvasRenderingContext2D,r:number){ ctx.beginPath(); ctx.moveTo(-r, r); ctx.lineTo(0, -r); ctx.lineTo(r, r); ctx.closePath(); ctx.fill(); }
-function bigTriangle(ctx:CanvasRenderingContext2D,r:number){ ctx.beginPath(); ctx.moveTo(-r, r); ctx.lineTo(0, -r*1.2); ctx.lineTo(r, r); ctx.closePath(); ctx.fill(); }
-function drawDiamond(ctx:CanvasRenderingContext2D,r:number){ ctx.beginPath(); ctx.moveTo(0,-r); ctx.lineTo(r,0); ctx.lineTo(0,r); ctx.lineTo(-r,0); ctx.closePath(); ctx.fill(); }
-function drawHex(ctx:CanvasRenderingContext2D, r:number){ ctx.beginPath(); for (let i=0;i<6;i++){ const a = (Math.PI/3)*i; const x=Math.cos(a)*r, y=Math.sin(a)*r; if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); } ctx.closePath(); ctx.fill(); }
-function ring(ctx:CanvasRenderingContext2D, r:number){ ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.stroke(); }
-
-class Sfx {
-  ctx: AudioContext;
-  unlocked:boolean;
-  constructor(){ const AC:any = (window as any).AudioContext || (window as any).webkitAudioContext; this.ctx = new AC(); this.unlocked=false; }
-  resume(){ if (this.ctx.state !== "running") this.ctx.resume(); this.unlocked=true; }
-  tone({freq=440, dur=0.06, type="square", gain=0.02}:{freq?:number;dur?:number;type?:"square"|"sine"|"sawtooth"|"triangle";gain?:number}){ const t=this.ctx.currentTime; const o=this.ctx.createOscillator(); const g=this.ctx.createGain(); o.type=type; o.frequency.value=freq; o.connect(g); g.connect(this.ctx.destination); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t+0.005); g.gain.exponentialRampToValueAtTime(1e-4, t+dur); o.start(t); o.stop(t+dur+0.03); }
-  seq(arr:any[]){ let off=0; for (const a of arr){ setTimeout(()=>this.tone(a), off*1000); off += a.dur + (a.gap||0.02); } }
-  play(name:string){
-    if (!this.unlocked) this.resume();
-    const map:any = {
-      shoot: [{freq:880,dur:0.03},{freq:660,dur:0.02}],
-      dash: [{freq:520,dur:0.05,type:"triangle"}],
-      pickup: [{freq:700,dur:0.05},{freq:900,dur:0.05}],
-      hurt: [{freq:220,dur:0.08,type:"sawtooth",gain:0.03}],
-      level: [{freq:600,dur:0.06},{freq:750,dur:0.06},{freq:900,dur:0.06}],
-      boss: [{freq:160,dur:0.2,type:"sawtooth",gain:0.04},{freq:200,dur:0.2,type:"sawtooth",gain:0.04}],
-      bossfire: [{freq:500,dur:0.04},{freq:450,dur:0.04}],
-      bossdown: [{freq:400,dur:0.08},{freq:600,dur:0.08},{freq:900,dur:0.12}],
-      buy: [{freq:520,dur:0.06},{freq:620,dur:0.06}],
-    };
-    const seqArr = map[name]; if (seqArr) this.seq(seqArr); else this.tone({});
+  if (!g.bossAlive && !g.bossDefeated && g.spawner.t >= g.meta.spawnEvery){ 
+    g.spawner.t=0; 
+    // 🔥 CORREGIDO AQUÍ 🔥
+    const far = g.rooms.filter((r:any)=> 
+      dist(p.x,p.y, r.cx * g.meta.tile, r.cy * g.meta.tile) > 200
+    );
+    const r = far.length? far[randInt(0,far.length-1)] : g.rooms[randInt(0,g.rooms.length-1)]; 
+    const pos = roomCenterPixel(r, g.meta.tile); 
+    spawnEnemy(g.enemies, pos.x+randInt(-30,30), pos.y+randInt(-30,30), g.meta); 
   }
 }
+
+
