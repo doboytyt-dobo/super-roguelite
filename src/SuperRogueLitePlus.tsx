@@ -138,7 +138,12 @@ export default function SuperRogueLitePlus() {
 
       {screen !== "menu" && (
         <div className="relative w-full max-w-[1100px] rounded-2xl overflow-hidden shadow-xl">
-          <canvas ref={canvasRef} width={960} height={600} className="block w-full h-auto bg-[#0b1020]" />
+         <canvas
+  ref={canvasRef}
+  width={960}
+  height={600}
+  className={`block w-full h-auto bg-[#0b1020] ${screen === "menu" ? "pointer-events-none" : ""}`}
+/>
 
           {g && (
             <div className="pointer-events-none absolute inset-0 p-3 flex flex-col">
