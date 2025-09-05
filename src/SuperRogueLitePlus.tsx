@@ -197,7 +197,7 @@ function Overlay({ children, onClose }:{ children: React.ReactNode, onClose?:()=
 
 function Menu({ difficulty, setDifficulty, onStart, onLoad }:{ difficulty:"easy"|"normal"|"hard", setDifficulty:(v:any)=>void, onStart:()=>void, onLoad:()=>void }) {
   return (
-    <div className="w-full max-w-[1100px] grid md:grid-cols-2 gap-6">
+    <div className="pointer-events-auto relative z-20 w-full max-w-[1100px] grid md:grid-cols-2 gap-6">
       <div className="bg-slate-800/60 rounded-2xl p-6 shadow-xl">
         <h2 className="text-xl font-bold mb-2">Nuevo Juego</h2>
         <p className="text-sm opacity-80 mb-4">Mapa procedural, enemigos con IA, JEFE, tienda y sonidos.</p>
@@ -209,25 +209,30 @@ function Menu({ difficulty, setDifficulty, onStart, onLoad }:{ difficulty:"easy"
             <option value="hard">Difícil</option>
           </select>
         </div>
-        <div className="flex gap-2">
-        <button
-  onClick={() => {
-    // 🔓 Desbloquear AudioContext antes de iniciar
-    try {
-      const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
-      const ctx = new AC();
-      if (ctx.state !== "running") ctx.resume();
-    } catch {}
-    onStart(); // inicia el juego
-  }}
-  className="px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600"
->
-  Comenzar
-</button>
+    <div className="flex gap-2">
+  <button
+    onClick={() => {
+      // Desbloquear AudioContext antes de iniciar
+      try {
+        const AC = (window as any).AudioContext || (window as any).webkitAudioContext;
+        const ctx = new AC();
+        if (ctx.state !== "running") ctx.resume();
+      } catch {}
+      onStart(); // inicia el juego
+    }}
+    className="pointer-events-auto px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600"
+  >
+    Comenzar
+  </button>
 
-          <button onClick={onLoad} className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600">Cargar</button>
-        </div>
-      </div>
+  <button
+    onClick={onLoad}
+    className="pointer-events-auto px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600"
+  >
+    Cargar
+  </button>
+</div>
+
       <div className="bg-slate-800/60 rounded-2xl p-6 shadow-xl">
         <h2 className="text-xl font-bold mb-3">Controles</h2>
         <ul className="text-sm space-y-1 opacity-90">
