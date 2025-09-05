@@ -508,6 +508,8 @@ function updateGame(g:any, dt:number, ctx:CanvasRenderingContext2D){
     const r = far.length? far[randInt(0,far.length-1)] : g.rooms[randInt(0,g.rooms.length-1)]; 
     const pos = roomCenterPixel(r, g.meta.tile); 
     spawnEnemy(g.enemies, pos.x+randInt(-30,30), pos.y+randInt(-30,30), g.meta); 
+    fix: unlock audio on Comenzar
+
   }
 }
 
