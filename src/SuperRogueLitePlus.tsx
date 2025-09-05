@@ -499,15 +499,23 @@ function updateGame(g:any, dt:number, ctx:CanvasRenderingContext2D){
     g.playSfx?.("boss"); 
   }
 
-  if (!g.bossAlive && !g.bossDefeated && g.spawner.t >= g.meta.spawnEvery){ 
-    g.spawner.t=0; 
-    // 🔥 CORREGIDO AQUÍ 🔥
-    const far = g.rooms.filter((r:any)=> 
-      dist(p.x,p.y, r.cx * g.meta.tile, r.cy * g.meta.tile) > 200
-    );
-    const r = far.length? far[randInt(0,far.length-1)] : g.rooms[randInt(0,g.rooms.length-1)]; 
-    const pos = roomCenterPixel(r, g.meta.tile); 
-    spawnEnemy(g.enemies, pos.x+randInt(-30,30), pos.y+randInt(-30,30), g.meta); 
+if (!g.bossAlive && !g.bossDefeated && g.spawner.t >= g.meta.spawnEvery) {
+  g.spawner.t = 0;
+  // 👇 bloque corregido (sin líneas extra)
+  const far = g.rooms.filter((r: any) =>
+    dist(p.x, p.y, r.cx * g.meta.tile, r.cy * g.meta.tile) > 200
+  );
+  const r = far.length
+    ? far[randInt(0, far.length - 1)]
+    : g.rooms[randInt(0, g.rooms.length - 1)];
+  const pos = roomCenterPixel(r, g.meta.tile);
+  spawnEnemy(
+    g.enemies,
+    pos.x + randInt(-30, 30),
+    pos.y + randInt(-30, 30),
+    g.meta
+  );
+}
 
   }
 }
