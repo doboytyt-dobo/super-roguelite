@@ -146,7 +146,8 @@ export default function SuperRogueLitePlus() {
 />
 
           {g && (
-            <div className="pointer-events-none absolute inset-0 p-3 flex flex-col">
+          <div className="pointer-events-auto fixed inset-0 z-50 w-full max-w-[1100px] mx-auto grid md:grid-cols-2 gap-6 pt-16">
+
               <TopHud g={g} onSave={saveGame} onPause={()=>setScreen("paused")} />
 
               {screen === "paused" && (
@@ -236,7 +237,21 @@ function Menu(
             }}
             className="pointer-events-auto px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600"
           >
-            Comenzar
+          <button
+  onClick={()=>{
+    // Desbloquear AudioContext antes de iniciar
+    try {
+      const AC: any = (window as any).AudioContext || (window as any).webkitAudioContext;
+      const ctx = new AC();
+      if (ctx.state !== "running") ctx.resume();
+    } catch {}
+    onstart(); // si tu prop se llama onStart, usa onStart() en lugar de onstart()
+  }}
+  className="pointer-events-auto px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600"
+>
+  Comenzar
+</button>
+
           </button>
 
           <button
