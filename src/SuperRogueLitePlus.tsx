@@ -515,9 +515,7 @@ if (!g.bossAlive && !g.bossDefeated && g.spawner.t >= g.meta.spawnEvery) {
     pos.y + randInt(-30, 30),
     g.meta
   );
-}
-
-  }
-}
+  } 
+  } 
 
 
