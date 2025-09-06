@@ -26,10 +26,21 @@ export default function SuperRogueLitePlus() {
     hard:   { enemyHp: 28, enemyDmg: 14, spawn: 1.4, playerHp: 80 },
   }), []);
 
-  function ensureSfx() {
-    if (!sfxRef.current) sfxRef.current = new Sfx();
-    sfxRef.current?.resume?.();
-  }
+function ensuresfx() {
+  if (!sfxRef.current) sfxRef.current = new Sfx();
+
+  // intenta reanudar por si el navegador lo requiere tras interacción
+  try {
+    (sfxRef.current as any)?.resume?.();
+  } catch {}
+
+  // EXPONE sfx para el resto del código que espera window.sfx
+  (window as any).sfx = sfxRef.current;
+}
+useEffect(() => {
+  ensuresfx();
+}, []);
+
 
   function initNewGame() {
     ensureSfx();
@@ -242,6 +253,17 @@ function Menu({
           {/* Botón Comenzar: desbloquea audio y llama onStart (¡ojo mayúscula!) */}
           <button
             onClick={() => {
+  // (opcional) desbloquear AudioContext
+  try {
+    const AC: any = (window as any).AudioContext || (window as any).webkitAudioContext;
+    const ctx = new AC();
+    if (ctx.state !== "running") ctx.resume();
+  } catch {}
+
+  ensuresfx();   // 👈 MUY IMPORTANTE
+  onStart();     // inicia el juego
+}}
+
               try {
                 const AC: any =
                   (window as any).AudioContext ||
