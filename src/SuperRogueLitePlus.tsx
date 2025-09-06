@@ -142,7 +142,7 @@ export default function SuperRogueLitePlus() {
 
       {screen !== "menu" && (
         <div className="relative w-full max-w-[1100px] rounded-2xl overflow-hidden shadow-xl">
-         <canvas
+<canvas
   ref={canvasRef}
   width={960}
   height={600}
@@ -205,21 +205,31 @@ function Overlay({ children, onClose }:{ children: React.ReactNode, onClose?:()=
   );
 }
 
-function Menu(
-  { difficulty, setDifficulty, onStart, onLoad }:
-  { difficulty: "easy" | "normal" | "hard", setDifficulty: (v:any)=>void, onStart: ()=>void, onLoad: ()=>void }
-){
+function Menu({
+  difficulty,
+  setDifficulty,
+  onStart,
+  onLoad,
+}: {
+  difficulty: "easy" | "normal" | "hard";
+  setDifficulty: (v: any) => void;
+  onStart: () => void;
+  onLoad: () => void;
+}) {
   return (
-    <div className="pointer-events-auto relative z-20 w-full max-w-[1100px] grid md:grid-cols-2 gap-6">
+    // Overlay fijo por encima de todo (z-50) y con clics habilitados
+    <div className="pointer-events-auto fixed inset-0 z-50 w-full max-w-[1100px] mx-auto grid md:grid-cols-2 gap-6 pt-16 px-4">
       <div className="bg-slate-800/60 rounded-2xl p-6 shadow-xl">
         <h2 className="text-xl font-bold mb-2">Nuevo Juego</h2>
-        <p className="text-sm opacity-80 mb-4">Mapa procedural, enemigos con IA, JEFE, tienda y sonidos.</p>
+        <p className="text-sm opacity-80 mb-4">
+          Mapa procedural, enemigos con IA, JEFE, tienda y sonidos.
+        </p>
 
         <div className="flex items-center gap-2 mb-4">
           <label className="text-sm opacity-90">Dificultad:</label>
           <select
             value={difficulty}
-            onChange={(e)=>setDifficulty(e.target.value as any)}
+            onChange={(e) => setDifficulty(e.target.value)}
             className="pointer-events-auto bg-slate-700 rounded-xl px-3 py-2"
           >
             <option value="easy">Fácil</option>
@@ -229,33 +239,21 @@ function Menu(
         </div>
 
         <div className="flex gap-2">
+          {/* Botón Comenzar: desbloquea audio y llama onStart (¡ojo mayúscula!) */}
           <button
-            onClick={()=>{
-              // Desbloquear AudioContext
+            onClick={() => {
               try {
-                const AC: any = (window as any).AudioContext || (window as any).webkitAudioContext;
+                const AC: any =
+                  (window as any).AudioContext ||
+                  (window as any).webkitAudioContext;
                 const ctx = new AC();
                 if (ctx.state !== "running") ctx.resume();
               } catch {}
-              onStart();
+              onStart(); // <- Asegúrate de que sea onStart (no onstart)
             }}
             className="pointer-events-auto px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600"
           >
-          <button
-  onClick={()=>{
-    // Desbloquear AudioContext antes de iniciar
-    try {
-      const AC: any = (window as any).AudioContext || (window as any).webkitAudioContext;
-      const ctx = new AC();
-      if (ctx.state !== "running") ctx.resume();
-    } catch {}
-    onstart(); // si tu prop se llama onStart, usa onStart() en lugar de onstart()
-  }}
-  className="pointer-events-auto px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600"
->
-  Comenzar
-</button>
-
+            Comenzar
           </button>
 
           <button
@@ -268,19 +266,20 @@ function Menu(
       </div>
 
       <div className="bg-slate-800/60 rounded-2xl p-6 shadow-xl">
-        <h2 className="text-xl font-bold mb-2">Controles</h2>
+        <h2 className="text-xl font-bold mb-3">Controles</h2>
         <ul className="text-sm space-y-1 opacity-90">
           <li>WASD: moverte • Clic: disparar</li>
           <li>Espacio: dash • E: interactuar (portal/tienda)</li>
           <li>P: pausar • Guardado en el HUD</li>
         </ul>
         <h3 className="text-sm font-semibold mt-4">Objetivo</h3>
-        <p className="text-sm opacity-80">Derrota al jefe del piso, entra al portal y mejora en la tienda.</p>
+        <p className="text-sm opacity-80">
+          Derrota al jefe del piso, entra al portal y mejora en la tienda.
+        </p>
       </div>
     </div>
   );
 }
-
 
 function TopHud({ g, onSave, onPause }:{ g: Game, onSave:()=>void, onPause:()=>void }){
   const hearts = Math.ceil(g.player.maxHp / 20);
