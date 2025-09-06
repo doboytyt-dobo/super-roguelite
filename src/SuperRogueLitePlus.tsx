@@ -264,44 +264,31 @@ function Menu({
   onStart();     // inicia el juego
 }}
 
-              try {
-                const AC: any =
-                  (window as any).AudioContext ||
-                  (window as any).webkitAudioContext;
-                const ctx = new AC();
-                if (ctx.state !== "running") ctx.resume();
-              } catch {}
-              onStart(); // <- Asegúrate de que sea onStart (no onstart)
-            }}
-            className="pointer-events-auto px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600"
-          >
-            Comenzar
-          </button>
+<div className="flex gap-2">
+  <button
+    onClick={() => {
+      // Desbloquear AudioContext en el primer gesto del usuario
+      try {
+        const AC: any =
+          (window as any).AudioContext || (window as any).webkitAudioContext;
+        const ctx = new AC();
+        if (ctx.state !== "running") ctx.resume?.();
+      } catch {}
+      onstart(); // inicia el juego
+    }}
+    className="pointer-events-auto px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600"
+  >
+    Comenzar
+  </button>
 
-          <button
-            onClick={onLoad}
-            className="pointer-events-auto px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600"
-          >
-            Cargar
-          </button>
-        </div>
-      </div>
+  <button
+    onClick={onload}
+    className="pointer-events-auto px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600"
+  >
+    Cargar
+  </button>
+</div>
 
-      <div className="bg-slate-800/60 rounded-2xl p-6 shadow-xl">
-        <h2 className="text-xl font-bold mb-3">Controles</h2>
-        <ul className="text-sm space-y-1 opacity-90">
-          <li>WASD: moverte • Clic: disparar</li>
-          <li>Espacio: dash • E: interactuar (portal/tienda)</li>
-          <li>P: pausar • Guardado en el HUD</li>
-        </ul>
-        <h3 className="text-sm font-semibold mt-4">Objetivo</h3>
-        <p className="text-sm opacity-80">
-          Derrota al jefe del piso, entra al portal y mejora en la tienda.
-        </p>
-      </div>
-    </div>
-  );
-}
 
 function TopHud({ g, onSave, onPause }:{ g: Game, onSave:()=>void, onPause:()=>void }){
   const hearts = Math.ceil(g.player.maxHp / 20);
